@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ElasticSearch 搜尋</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        #search-form {
+            text-align: center;
+        }
+
+        #search-term {
+            padding: 10px;
+            width: 60%;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        #results-table th, #results-table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ccc;
+            background-color: #fff;
+        }
+
+        #results-table th {
+            background-color: #333;
+            color: #fff;
+        }
+
+        #results-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>科展作品搜尋</h1>
+    <form id="search-form">
+        <input type="text" id="search-term" placeholder="輸入搜索詞">
+        <button type="submit">搜尋</button>
+    </form>
+    <div id="search-results">
+    </div>
+    <table id="results-table">
+        <thead>
+            <tr>
+                <th>科目</th>
+                <th>分數</th>
+                <th>名稱</th>
+                <th>摘要</th>
+                <th>關鍵詞一</th>
+                <th>關鍵詞二</th>
+                <th>關鍵詞三</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <script>
+        const searchForm = document.getElementById("search-form");
+        const searchTerm = document.getElementById("search-term");
+        const searchResults = document.getElementById("search-results");
+        const resultsTable = document.getElementById("results-table").getElementsByTagName('tbody')[0];
+
+        searchForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const term = searchTerm.value.trim();
+
+            if (term) {
+                const response = await fetch("/search", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: `search_term=${term}`
+                });
+
+                if (response.ok) {
+                    const results = await response.json();
+                    searchResults.innerHTML = "";
+
+                    if (results.length === 0) {
+                        searchResults.innerHTML = "沒有結果。";
+                    } else {
+                        resultsTable.innerHTML = "";
+                        results.forEach((result) => {
+                            const row = resultsTable.insertRow();
+                            const cell1 = row.insertCell(0);
+                            cell1.innerHTML = result["科目"];
+                            const cell2 = row.insertCell(1);
+                            cell2.innerHTML = result["分數"];
+                            const cell3 = row.insertCell(2);
+                            cell3.innerHTML = JSON.stringify(result["名稱"]);
+                            const cell4 = row.insertCell(3);
+                            cell4.innerHTML = result["摘要"];
+                            const cell5 = row.insertCell(4);
+                            cell5.innerHTML = result["關鍵詞一"];
+                            const cell6 = row.insertCell(5);
+                            cell6.innerHTML = result["關鍵詞二"];
+                            const cell7 = row.insertCell(6);
+                            cell7.innerHTML = result["關鍵詞三"];
+                        });
+                    }
+                } else {
+                    searchResults.innerHTML = "搜索失敗。";
+                }
+            }
+        });
+    </script>
+</body>
+</html>
